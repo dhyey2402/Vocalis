@@ -1,112 +1,85 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Music, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { useVocalis } from '../context/VocalisContext';
+import { Play, Pause, Volume2, VolumeX, Loader2 } from 'lucide-react';
+
+const formatTime = (seconds) => {
+  if (!seconds || isNaN(seconds)) return '0:00';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
 
 const AudioPlayer = ({ audioUrl, isLoading }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const { state, audioControls } = useVocalis();
+  const { audioMeta } = state;
   const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef(null);
 
-  useEffect(() => {
-    if (audioUrl && audioRef.current) {
-      audioRef.current.src = audioUrl;
-      // Reset state when new audio comes in
-      setProgress(0);
-      setIsPlaying(false);
-    }
-  }, [audioUrl]);
-
-  const togglePlay = () => {
-    if (!audioRef.current || !audioUrl) return;
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      const current = audioRef.current.currentTime;
-      const duration = audioRef.current.duration;
-      if (duration) {
-        setProgress((current / duration) * 100);
-      }
-    }
+  const toggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    audioControls.setMuted(newMuted);
   };
 
   const handleSeek = (e) => {
-    if (audioRef.current && audioUrl) {
-      const seekTime = (e.target.value / 100) * audioRef.current.duration;
-      audioRef.current.currentTime = seekTime;
-      setProgress(e.target.value);
-    }
-  };
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+    if (audioUrl) {
+      const seekTime = (e.target.value / 100) * audioMeta.duration;
+      audioControls.seek(seekTime);
     }
   };
 
   if (isLoading) {
     return (
-      <div className="w-full bg-slate-900/50 border border-white/10 rounded-xl p-6 flex flex-col items-center justify-center gap-4 min-h-[160px]">
-        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
-        <p className="text-sm text-slate-400">Generating audio...</p>
+      <div className="w-full bg-white border border-slate-200/80 rounded-xl p-8 flex flex-col items-center justify-center gap-3 min-h-[100px] shadow-sm">
+        <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+        <p className="text-xs font-bold tracking-[0.1em] text-slate-400 uppercase">Generating audio...</p>
       </div>
     );
   }
 
   if (!audioUrl) {
     return (
-      <div className="w-full bg-slate-900/30 border border-white/5 border-dashed rounded-xl p-6 flex flex-col items-center justify-center gap-4 min-h-[160px]">
-        <div className="bg-slate-800/50 p-3 rounded-full text-slate-500">
-          <Music className="w-6 h-6" />
-        </div>
-        <p className="text-sm text-slate-500">Your generated audio will appear here</p>
+      <div className="w-full bg-white border border-dashed border-slate-200/80 rounded-xl p-8 flex flex-col items-center justify-center gap-2 min-h-[100px] shadow-sm">
+        <p className="text-xs font-bold tracking-[0.1em] text-slate-400 uppercase">No audio generated yet</p>
+        <p className="text-xs text-slate-400">Generate speech to see your audio here.</p>
       </div>
     );
   }
-
+  
   return (
-    <div className="w-full bg-slate-900/60 border border-white/10 shadow-lg rounded-xl p-4 sm:p-6 transition-all">
-      <div className="flex items-center gap-4 sm:gap-6">
+    <div className="w-full bg-white border border-slate-200/80 rounded-xl p-5 transition-all shadow-sm hover:border-slate-300">
+      <div className="flex items-center gap-5">
         <button
-          onClick={togglePlay}
-          className="flex-shrink-0 w-12 h-12 bg-indigo-600 hover:bg-indigo-500 rounded-full flex items-center justify-center text-white shadow-lg transition-all active:scale-95"
+          onClick={audioControls.togglePlay}
+          className="flex-shrink-0 w-12 h-12 bg-gradient-to-b from-slate-800 to-slate-950 flex items-center justify-center text-white transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-95 rounded-full"
+          aria-label={audioMeta.isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-1" />}
+          {audioMeta.isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
         </button>
 
-        <div className="flex-grow flex flex-col gap-2">
+        <div className="flex-grow flex flex-col gap-1.5">
           <input
             type="range"
             min="0"
             max="100"
-            value={progress}
+            value={audioMeta.progress || 0}
             onChange={handleSeek}
-            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+            className="w-full h-1 bg-slate-200 appearance-none cursor-pointer accent-slate-900 focus:outline-none rounded-none"
+            aria-label="Seek audio"
           />
+          <div className="flex justify-between text-[10px] font-bold tracking-[0.05em] text-slate-400">
+            <span>{formatTime(audioMeta.currentTime)}</span>
+            <span>{formatTime(audioMeta.duration)}</span>
+          </div>
         </div>
 
         <button
           onClick={toggleMute}
-          className="flex-shrink-0 text-slate-400 hover:text-white transition-colors p-2"
+          className="flex-shrink-0 text-slate-400 hover:text-slate-900 transition-colors p-1"
+          aria-label={isMuted ? 'Unmute' : 'Mute'}
         >
-          {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+          {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </button>
       </div>
-      
-      <audio 
-        ref={audioRef}
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
-        className="hidden"
-      />
     </div>
   );
 };

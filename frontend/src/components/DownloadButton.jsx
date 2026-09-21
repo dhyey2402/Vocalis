@@ -2,19 +2,50 @@ import React from 'react';
 import { Download } from 'lucide-react';
 
 const DownloadButton = ({ audioUrl, disabled }) => {
+  const handleDownload = async () => {
+    if (!audioUrl) return;
+    
+    try {
+      const url = audioUrl.startsWith('/') ? `http://localhost:5000${audioUrl}` : audioUrl;
+      
+      const response = await fetch(url, { credentials: 'include' });
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+      }
+      
+      const blob = await response.blob();
+      
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = 'Vocalis-generated-speech.mp3';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error("Failed to download audio:", error);
+      alert("Failed to download the generated audio file.");
+    }
+  };
+
   return (
     <button
+      onClick={handleDownload}
       disabled={disabled || !audioUrl}
       className={`
-        w-full sm:w-auto relative group overflow-hidden rounded-xl font-semibold px-6 py-3.5 transition-all
-        flex items-center justify-center gap-2 border
+        text-xs font-bold uppercase tracking-[0.1em] transition-all rounded-lg
+        flex items-center gap-2 px-5 py-2.5 border
         ${disabled || !audioUrl
-          ? 'bg-slate-900/50 border-white/5 text-slate-500 cursor-not-allowed' 
-          : 'bg-slate-800/80 hover:bg-slate-700 border-white/10 text-white hover:border-white/20 active:scale-[0.98]'
+          ? 'bg-transparent border-slate-200 text-slate-400 cursor-not-allowed shadow-none' 
+          : 'bg-white border-slate-200/80 text-slate-600 hover:text-slate-900 hover:border-slate-300 shadow-sm hover:shadow active:scale-[0.98]'
         }
       `}
     >
-      <Download className="w-5 h-5" />
+      <Download className="w-3.5 h-3.5" />
       <span>Download Audio</span>
     </button>
   );

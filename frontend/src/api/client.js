@@ -35,22 +35,22 @@ const handleResponse = async (response) => {
       errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'Invalid request. Please check your input parameters.';
       break;
     case 401:
-      errorMessage = 'Unauthorized. Please check your credentials.';
+      errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'Unauthorized. Please check your credentials.';
       break;
     case 403:
-      errorMessage = 'Forbidden. You do not have permission to access this resource.';
+      errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'Forbidden. You do not have permission to access this resource.';
       break;
     case 404:
-      errorMessage = 'Resource not found.';
+      errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'Resource not found.';
       break;
     case 429:
-      errorMessage = 'Too many requests. Please wait a moment and try again.';
+      errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'Too many requests. Please wait a moment and try again.';
       break;
     case 500:
-      errorMessage = 'Internal server error. The backend encountered an unexpected problem.';
+      errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'Internal server error. The backend encountered an unexpected problem.';
       break;
     case 503:
-      errorMessage = 'External service unavailable. The TTS provider might be down.';
+      errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : 'External service unavailable. The TTS provider might be down.';
       break;
     default:
       errorMessage = errorMessage !== 'An unexpected error occurred' ? errorMessage : `HTTP Error ${response.status}`;
@@ -66,7 +66,7 @@ export const checkHealth = async () => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/health`);
+    const response = await fetch(`${API_BASE_URL}/health`, { credentials: 'include' });
     return await handleResponse(response);
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -83,7 +83,7 @@ export const fetchVoices = async () => {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/voices`);
+    const response = await fetch(`${API_BASE_URL}/voices`, { credentials: 'include' });
     return await handleResponse(response);
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -92,7 +92,7 @@ export const fetchVoices = async () => {
 };
 
 export const generateSpeech = async (payload) => {
-  const { text, language, voice } = payload;
+  const { text, language, voice, stability, similarityBoost } = payload;
   
   if (USE_MOCK_API) {
     console.log('[MOCK API] generateSpeech called with:', payload);
@@ -117,14 +117,77 @@ export const generateSpeech = async (payload) => {
     // Send JSON request with Content-Type application/json
     const response = await fetch(`${API_BASE_URL}/tts`, {
       method: 'POST',
+      credentials: 'include',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ text, language, voice })
+      body: JSON.stringify({
+        text: payload.text,
+        language: payload.language,
+        voice: payload.voice,
+        sections: payload.sections || [],
+        listeningData: payload.listeningData || null,
+        stability: payload.stability,
+        similarity_boost: payload.similarityBoost
+      })
     });
     return await handleResponse(response);
   } catch (error) {
     if (error instanceof ApiError) throw error;
     throw new Error('Network error. Could not generate speech. Please check your connection.');
+  }
+};
+
+export const getLibrary = async () => {
+  if (USE_MOCK_API) {
+    console.log('[MOCK API] getLibrary called');
+    return new Promise(resolve => setTimeout(() => resolve({ success: true, generations: [] }), 500));
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/audio/`, { credentials: 'include' });
+    return await handleResponse(response);
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new Error('Network error. Could not fetch library.');
+  }
+};
+
+export const deleteGeneration = async (id) => {
+  if (USE_MOCK_API) {
+    console.log('[MOCK API] deleteGeneration called with id:', id);
+    return new Promise(resolve => setTimeout(() => resolve({ success: true }), 500));
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/audio/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new Error('Network error. Could not delete generation.');
+  }
+};
+export const updateGenerationTitle = async (id, title) => {
+  if (USE_MOCK_API) {
+    console.log('[MOCK API] updateGenerationTitle called with id:', id, 'title:', title);
+    return new Promise(resolve => setTimeout(() => resolve({ success: true, generation: { id, title } }), 500));
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/audio/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title })
+    });
+    return await handleResponse(response);
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw new Error('Network error. Could not rename generation.');
   }
 };

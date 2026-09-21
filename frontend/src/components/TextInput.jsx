@@ -1,5 +1,4 @@
 import React from 'react';
-import { Trash2 } from 'lucide-react';
 
 const TextInput = ({ text, setText, maxLength = 5000 }) => {
   const charCount = text.length;
@@ -10,49 +9,42 @@ const TextInput = ({ text, setText, maxLength = 5000 }) => {
   const isInvalid = isOverLimit || isWhitespaceOnly;
 
   return (
-    <div className="flex flex-col gap-2 w-full">
+    <div className="flex flex-col gap-3 w-full">
       <div className="flex justify-between items-end">
-        <label htmlFor="tts-text" className="text-sm font-semibold text-slate-300">
+        <label htmlFor="tts-text" className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">
           Text to Speech
         </label>
         <button
           onClick={() => setText('')}
           disabled={!text}
-          className="text-xs flex items-center gap-1 text-slate-400 hover:text-red-400 disabled:opacity-50 disabled:hover:text-slate-400 transition-colors"
+          className="text-[10px] font-bold tracking-[0.1em] uppercase text-slate-400 hover:text-slate-900 disabled:opacity-40 disabled:hover:text-slate-400 transition-colors"
           title="Clear text"
         >
-          <Trash2 className="w-3.5 h-3.5" />
           Clear
         </button>
       </div>
       
-      <div className="relative group">
-        <textarea
-          id="tts-text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Enter the text you want to convert to speech..."
-          className={`w-full h-48 bg-slate-900/50 border rounded-xl p-4 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 transition-all resize-y ${
-            isInvalid 
-              ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
-              : isNearLimit
-              ? 'border-amber-500/50 focus:border-amber-500 focus:ring-amber-500/20 group-hover:border-amber-500/50'
-              : 'border-white/10 focus:border-indigo-500 focus:ring-indigo-500/20 group-hover:border-white/20'
-          }`}
-        />
-      </div>
+      <textarea
+        id="tts-text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Enter the text you want to convert to speech..."
+        className={`w-full h-64 bg-white border border-slate-200/80 p-6 text-slate-800 text-base placeholder-slate-300 focus:outline-none focus:ring-4 transition-all duration-200 resize-y rounded-lg leading-relaxed shadow-sm hover:border-slate-300 ${
+          isInvalid 
+            ? 'border-red-300 focus:border-red-400 focus:ring-red-50' 
+            : isNearLimit
+            ? 'border-amber-300 focus:border-amber-400 focus:ring-amber-50'
+            : 'focus:border-slate-400 focus:ring-slate-100/50'
+        }`}
+      />
 
-      <div className="flex justify-between items-center text-xs text-slate-400">
-        <div className="flex gap-4">
-          <span>Words: <strong className="text-slate-300 font-medium">{wordCount}</strong></span>
-        </div>
-        <div className={`flex gap-1 font-medium transition-colors ${
-          isOverLimit ? 'text-red-400' : isNearLimit ? 'text-amber-400' : ''
+      <div className="flex justify-between items-center text-[10px] font-bold tracking-[0.1em] text-slate-400 uppercase">
+        <span>Words: <strong className="text-slate-600">{wordCount}</strong></span>
+        <span className={`transition-colors ${
+          isOverLimit ? 'text-red-500' : isNearLimit ? 'text-amber-500' : ''
         }`}>
-          <span>{charCount}</span>
-          <span className="text-slate-500 font-normal">/</span>
-          <span className="text-slate-500 font-normal">{maxLength}</span>
-        </div>
+          {charCount} / {maxLength}
+        </span>
       </div>
     </div>
   );

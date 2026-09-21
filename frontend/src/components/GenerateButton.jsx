@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 const GenerateButton = ({ onClick, disabled, isLoading }) => {
   return (
@@ -7,28 +7,24 @@ const GenerateButton = ({ onClick, disabled, isLoading }) => {
       onClick={onClick}
       disabled={disabled || isLoading}
       className={`
-        w-full sm:w-auto relative group overflow-hidden rounded-xl font-semibold text-white px-8 py-3.5 transition-all
-        flex items-center justify-center gap-2
+        relative px-8 py-3.5 text-xs font-bold uppercase tracking-[0.1em] transition-all duration-300 rounded-lg overflow-hidden group
+        flex items-center justify-center gap-2.5
         ${disabled || isLoading 
-          ? 'bg-slate-800 text-slate-400 cursor-not-allowed opacity-80' 
-          : 'bg-indigo-600 hover:bg-indigo-500 shadow-[0_0_20px_rgba(79,70,229,0.3)] hover:shadow-[0_0_25px_rgba(79,70,229,0.5)] active:scale-[0.98]'
+          ? 'bg-slate-50 text-slate-400 cursor-not-allowed border border-slate-200 shadow-none' 
+          : 'bg-gradient-to-b from-slate-800 to-slate-950 text-white hover:from-slate-700 hover:to-slate-900 shadow-[0_4px_14px_0_rgba(15,23,42,0.2)] hover:shadow-[0_6px_20px_rgba(15,23,42,0.23)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]'
         }
       `}
     >
-      {/* Button background effect for enabled state */}
-      {!(disabled || isLoading) && (
-        <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
-      )}
-      
       {isLoading ? (
         <>
-          <Loader2 className="w-5 h-5 animate-spin" />
-          <span>Generating...</span>
+          <Loader2 className="w-4 h-4 animate-spin relative z-10" />
+          <span className="relative z-10">Generating...</span>
+          <div className="absolute inset-0 bg-white/10 animate-pulse" />
         </>
       ) : (
         <>
-          <Play className="w-5 h-5 fill-current" />
-          <span>Generate Speech</span>
+          <span className="relative z-10">Generate Speech</span>
+          <span className="relative z-10 transition-transform duration-300 group-hover:translate-x-1">&rarr;</span>
         </>
       )}
     </button>

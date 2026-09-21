@@ -1,5 +1,4 @@
 import React from 'react';
-import { User } from 'lucide-react';
 import { getVoicesForLanguage } from '../data/voices';
 
 const VoiceSelector = ({ selectedVoice, setSelectedVoice, selectedLang, disabled = false }) => {
@@ -7,19 +6,16 @@ const VoiceSelector = ({ selectedVoice, setSelectedVoice, selectedLang, disabled
 
   return (
     <div className="flex flex-col gap-2 w-full">
-      <label htmlFor="voice-select" className="text-sm font-semibold text-slate-300">
+      <label htmlFor="voice-select" className="text-[10px] font-bold tracking-[0.15em] text-slate-400 uppercase">
         Voice
       </label>
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-          <User className="h-4 w-4" />
-        </div>
         <select
           id="voice-select"
           value={selectedVoice}
           onChange={(e) => setSelectedVoice(e.target.value)}
           disabled={disabled || !selectedLang || availableVoices.length === 0}
-          className="w-full appearance-none bg-slate-900/50 border border-white/10 rounded-xl py-3 pl-10 pr-10 text-slate-100 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full appearance-none bg-white border border-slate-200/80 rounded-lg py-3 pl-4 pr-10 text-sm text-slate-800 hover:border-slate-300 focus:outline-none focus:ring-4 focus:ring-slate-100/50 focus:border-slate-400 transition-all duration-200 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <option value="" disabled>
             {!selectedLang ? 'Select language first' : 'Select a voice'}
