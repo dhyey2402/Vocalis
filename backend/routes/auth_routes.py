@@ -56,7 +56,8 @@ def login():
     }))
     
     # Set HttpOnly cookie
-    is_production = os.environ.get('FLASK_ENV') == 'production'
+    frontend_url = os.environ.get('FRONTEND_URL', '')
+    is_production = os.environ.get('FLASK_ENV') == 'production' or (frontend_url and 'localhost' not in frontend_url and '127.0.0.1' not in frontend_url)
     response.set_cookie(
         'token', 
         token, 
@@ -72,7 +73,8 @@ def login():
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     response = make_response(jsonify({'success': True, 'message': 'Logged out successfully'}))
-    is_production = os.environ.get('FLASK_ENV') == 'production'
+    frontend_url = os.environ.get('FRONTEND_URL', '')
+    is_production = os.environ.get('FLASK_ENV') == 'production' or (frontend_url and 'localhost' not in frontend_url and '127.0.0.1' not in frontend_url)
     response.set_cookie('token', '', expires=0, httponly=True, secure=is_production, samesite='None' if is_production else 'Lax', path='/')
     return response
 
@@ -107,7 +109,8 @@ def google_auth():
     )
     
     response = make_response(redirect(auth_url))
-    is_production = os.environ.get('FLASK_ENV') == 'production'
+    frontend_url = os.environ.get('FRONTEND_URL', '')
+    is_production = os.environ.get('FLASK_ENV') == 'production' or (frontend_url and 'localhost' not in frontend_url and '127.0.0.1' not in frontend_url)
     response.set_cookie('oauth_state', state, httponly=True, secure=is_production, samesite='None' if is_production else 'Lax', max_age=600, path='/')
     return response
 
@@ -189,7 +192,8 @@ def google_callback():
         response = make_response(redirect(f"{frontend_url}/dashboard"))
         
         # Set HttpOnly cookie
-        is_production = os.environ.get('FLASK_ENV') == 'production'
+        frontend_url = os.environ.get('FRONTEND_URL', '')
+        is_production = os.environ.get('FLASK_ENV') == 'production' or (frontend_url and 'localhost' not in frontend_url and '127.0.0.1' not in frontend_url)
         response.set_cookie(
             'token', 
             token, 
