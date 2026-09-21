@@ -9,3 +9,4 @@ requests==2.31.0
 Werkzeug==3.0.1
 google-auth==2.26.2
 gunicorn
+mutagen
