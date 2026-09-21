@@ -56,12 +56,13 @@ def login():
     }))
     
     # Set HttpOnly cookie
+    is_production = os.environ.get('FLASK_ENV') == 'production'
     response.set_cookie(
         'token', 
         token, 
         httponly=True, 
-        secure=os.environ.get('FLASK_ENV') == 'production',
-        samesite='Lax',
+        secure=is_production,
+        samesite='None' if is_production else 'Lax',
         path='/',
         max_age=int(os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 1440)) * 60
     )
@@ -71,7 +72,8 @@ def login():
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     response = make_response(jsonify({'success': True, 'message': 'Logged out successfully'}))
-    response.set_cookie('token', '', expires=0, httponly=True, secure=os.environ.get('FLASK_ENV') == 'production', samesite='Lax', path='/')
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+    response.set_cookie('token', '', expires=0, httponly=True, secure=is_production, samesite='None' if is_production else 'Lax', path='/')
     return response
 
 @auth_bp.route('/me', methods=['GET'])
@@ -105,7 +107,8 @@ def google_auth():
     )
     
     response = make_response(redirect(auth_url))
-    response.set_cookie('oauth_state', state, httponly=True, secure=os.environ.get('FLASK_ENV') == 'production', max_age=600, path='/')
+    is_production = os.environ.get('FLASK_ENV') == 'production'
+    response.set_cookie('oauth_state', state, httponly=True, secure=is_production, samesite='None' if is_production else 'Lax', max_age=600, path='/')
     return response
 
 @auth_bp.route('/google/callback', methods=['GET'])
@@ -186,17 +189,18 @@ def google_callback():
         response = make_response(redirect(f"{frontend_url}/dashboard"))
         
         # Set HttpOnly cookie
+        is_production = os.environ.get('FLASK_ENV') == 'production'
         response.set_cookie(
             'token', 
             token, 
             httponly=True, 
-            secure=os.environ.get('FLASK_ENV') == 'production',
-            samesite='Lax',
+            secure=is_production,
+            samesite='None' if is_production else 'Lax',
             path='/',
             max_age=int(os.environ.get('ACCESS_TOKEN_EXPIRE_MINUTES', 1440)) * 60
         )
         # Clear oauth state
-        response.set_cookie('oauth_state', '', expires=0, path='/')
+        response.set_cookie('oauth_state', '', expires=0, samesite='None' if is_production else 'Lax', secure=is_production, path='/')
         
         return response
 
