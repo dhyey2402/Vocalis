@@ -1,12 +1,14 @@
 import React from 'react';
 import { Download } from 'lucide-react';
+import { API_BASE_URL } from '../api/config';
 
 const DownloadButton = ({ audioUrl, disabled }) => {
   const handleDownload = async () => {
     if (!audioUrl) return;
     
     try {
-      const url = audioUrl.startsWith('/') ? `http://localhost:5000${audioUrl}` : audioUrl;
+      const baseUrl = API_BASE_URL.replace(/\/api$/, '');
+      const url = audioUrl.startsWith('/') ? `${baseUrl}${audioUrl}` : audioUrl;
       
       const response = await fetch(url, { credentials: 'include' });
       

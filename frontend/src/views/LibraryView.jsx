@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useVocalis } from '../context/VocalisContext';
+import { API_BASE_URL } from '../api/config';
 import { getLibrary, deleteGeneration, updateGenerationTitle } from '../api/client';
 import { Play, Pause, Trash2, Download, Loader2, Edit2, Check, X } from 'lucide-react';
 import { AVAILABLE_VOICES } from '../data/voices';
@@ -24,6 +25,8 @@ const LibraryView = () => {
   const [error, setError] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [editTitle, setEditTitle] = useState('');
+
+  const audioBaseUrl = API_BASE_URL.replace(/\/api$/, '');
 
   useEffect(() => {
     const fetchLibrary = async () => {
@@ -89,7 +92,7 @@ const LibraryView = () => {
     const gen = generations.find(g => g.id === id);
     if (!gen) return;
 
-    const audioUrl = `${window.location.protocol}//${window.location.hostname}:5000/api/audio/${id}/stream`;
+    const audioUrl = `${audioBaseUrl}/api/audio/${id}/stream`;
     if (state.generatedAudio === audioUrl) {
       audioControls.togglePlay();
     } else {
@@ -152,7 +155,7 @@ const LibraryView = () => {
         <div className="flex flex-col gap-4">
           {generations.map(gen => {
             const voiceInfo = AVAILABLE_VOICES.find(v => v.id === gen.voice) || { name: gen.voice };
-            const audioUrl = `${window.location.protocol}//${window.location.hostname}:5000/api/audio/${gen.id}/stream`;
+            const audioUrl = `${audioBaseUrl}/api/audio/${gen.id}/stream`;
             const isPlayingThis = state.generatedAudio === audioUrl && state.audioMeta.isPlaying;
 
             return (
